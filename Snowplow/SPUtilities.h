@@ -251,4 +251,11 @@
  */
 + (NSString *) camelcaseParsedKey:(NSString *)key;
 
+/*!
+ Return nil if value is nil or empty string, otherwise return string.
+ @param aString Some string
+ @return A string or nil
+ */
++ (NSString *) validateString:(NSString *)aString;
+
 @end

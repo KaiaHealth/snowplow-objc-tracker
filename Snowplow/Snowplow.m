@@ -193,8 +193,16 @@ NSString * const KSPCdDescription         = @"description";
 
 // --- Screen View Event
 
-NSString * const kSPSvId                  = @"id";
-NSString * const kSPSvName                = @"name";
+NSString * const kSPSvName                    = @"name";
+NSString * const kSPSvType                    = @"type";
+NSString * const kSPSvScreenId                = @"id";
+NSString * const kSPSvPreviousName            = @"previousName";
+NSString * const kSPSvPreviousType            = @"previousType";
+NSString * const kSPSvPreviousScreenId        = @"previousScreenId";
+NSString * const kSPSvTransitionType          = @"transitionType";
+NSString * const kSPSvViewController          = @"viewController";
+NSString * const kSPSvTopViewController       = @"topViewController";
+
 
 // --- User Timing Event
 

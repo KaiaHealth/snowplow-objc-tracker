@@ -212,8 +212,15 @@ extern NSString * const KSPCdDescription;
 
 // --- Screen View Event
 
-extern NSString * const kSPSvId;
 extern NSString * const kSPSvName;
+extern NSString * const kSPSvType;
+extern NSString * const kSPSvScreenId;
+extern NSString * const kSPSvPreviousName;
+extern NSString * const kSPSvPreviousType;
+extern NSString * const kSPSvPreviousScreenId;
+extern NSString * const kSPSvTransitionType;
+extern NSString * const kSPSvViewController;
+extern NSString * const kSPSvTopViewController;
 
 // --- User Timing Event
 

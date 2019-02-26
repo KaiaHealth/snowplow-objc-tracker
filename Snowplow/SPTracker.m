@@ -29,6 +29,24 @@
 #import "SPUtilities.h"
 #import "SPSession.h"
 #import "SPEvent.h"
+#import "SPScreenState.h"
+
+/** A class extension that makes the screen view states mutable internally. */
+@interface SPTracker ()
+
+@property (readwrite, nonatomic, strong) SPScreenState * currentScreenState;
+@property (readwrite, nonatomic, strong) SPScreenState * previousScreenState;
+
+- (void) populatePreviousScreenState;
+
+/*!
+ @brief This method is called to send an auto-tracked screen view event.
+
+ @param notification The notification raised by a UIViewController
+ */
+- (void) receiveScreenViewNotification:(NSNotification *)notification;
+
+@end
 
 @implementation SPTracker {
     NSMutableDictionary *  _trackerData;
@@ -37,6 +55,7 @@
     SPSession *            _session;
     BOOL                   _sessionContext;
     BOOL                   _applicationContext;
+    BOOL                   _autotrackScreenViews;
     BOOL                   _lifecycleEvents;
     NSInteger              _foregroundTimeout;
     NSInteger              _backgroundTimeout;
@@ -65,11 +84,13 @@
         _sessionContext = NO;
         _applicationContext = NO;
         _lifecycleEvents = NO;
+        _autotrackScreenViews = NO;
         _foregroundTimeout = 600;
         _backgroundTimeout = 300;
         _checkInterval = 15;
         _builderFinished = NO;
-
+        self.previousScreenState = nil;
+        self.currentScreenState = nil;
 #if SNOWPLOW_TARGET_IOS
         _platformContextSchema = kSPMobileContextSchema;
 #else
@@ -88,6 +109,13 @@
                                            andBackgroundTimeout:_backgroundTimeout
                                                andCheckInterval:_checkInterval
                                                      andTracker:self];
+    }
+
+    if (_autotrackScreenViews) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(receiveScreenViewNotification:)
+                                                     name:@"SPScreenViewDidAppear"
+                                                   object:nil];
     }
 
     _builderFinished = YES;
@@ -142,6 +170,10 @@
 
 - (void) setApplicationContext:(BOOL)applicationContext {
     _applicationContext = applicationContext;
+}
+
+- (void) setAutotrackScreenViews:(BOOL)autotrackScreenViews {
+    _autotrackScreenViews = autotrackScreenViews;
 }
 
 - (void) setForegroundTimeout:(NSInteger)foregroundTimeout {
@@ -214,6 +246,35 @@
     return applicationInfo;
 }
 
+- (void) receiveScreenViewNotification:(NSNotification *)notification {
+    NSString * name = [[notification userInfo] objectForKey:@"viewControllerName"];
+    NSString * type = stringWithSPScreenType([[[notification userInfo] objectForKey:@"type"] integerValue]);
+    NSString * topViewControllerClassName = [[notification userInfo] objectForKey:@"topViewControllerClassName"];
+    NSString * viewControllerClassName = [[notification userInfo] objectForKey:@"viewControllerClassName"];
+    SPScreenState * newScreenState = [[SPScreenState alloc] initWithName:name type:type screenId:nil transitionType:nil];
+    [self populatePreviousScreenState];
+    [self setCurrentScreenState:newScreenState];
+    SPScreenView *event = [SPScreenView build:^(id<SPScreenViewBuilder> builder) {
+        if (self.previousScreenState) {
+            [builder setWithPreviousState:self.previousScreenState];
+        }
+        if (self.currentScreenState) {
+            [builder setWithCurrentState:self.currentScreenState];
+        }
+        [builder setTopViewControllerName:topViewControllerClassName];
+        [builder setViewControllerName:viewControllerClassName];
+    }];
+    [self trackScreenViewEvent:event];
+}
+
+- (void) populatePreviousScreenState {
+    // Covers case if tracker initializes and doesn't set state
+    // (not sure if this is true, but worth covering against)
+    if (self.currentScreenState) {
+        self.previousScreenState = self.currentScreenState;
+    }
+}
+
 // Event Tracking Functions
 
 - (void) trackPageViewEvent:(SPPageView *)event {
@@ -245,6 +306,7 @@
 }
 
 - (void) trackScreenViewEvent:(SPScreenView *)event {
+    //newScreenViewState:(SPScreenViewState *)newState;
     SPUnstructured * unstruct = [SPUnstructured build:^(id<SPUnstructuredBuilder> builder) {
         [builder setEventData:[event getPayload]];
         [builder setTimestamp:[event getTimestamp]];

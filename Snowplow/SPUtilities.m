@@ -356,4 +356,11 @@
     }
 }
 
++ (NSString *) validateString:(NSString *)aString {
+    if (!aString | ([aString length] == 0)) {
+        return nil;
+    }
+    return aString;
+}
+
 @end
