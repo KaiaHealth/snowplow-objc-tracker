@@ -83,6 +83,7 @@ extern NSString * const kSPPushNotificationSchema;
 extern NSString * const kSPApplicationContextSchema;
 extern NSString * const kSPBackgroundSchema;
 extern NSString * const kSPForegroundSchema;
+extern NSString * const kSPErrorSchema;
 
 // --- Event Keys
 
@@ -256,5 +257,12 @@ extern NSString * const kSPBackgroundIndex;
 // --- Foreground Event
 
 extern NSString * const kSPForegroundIndex;
+
+// --- Error Event
+
+extern NSString * const kSPErrorMessage;
+extern NSString * const kSPErrorStackTrace;
+extern NSString * const kSPErrorName;
+extern NSString * const kSPErrorLanguage;
 
 @end

@@ -29,6 +29,7 @@
 #import "SPUtilities.h"
 #import "SPSession.h"
 #import "SPEvent.h"
+#import "SPError.h"
 #import "SPScreenState.h"
 
 /** A class extension that makes the screen view states mutable internally. */
@@ -48,6 +49,20 @@
 
 @end
 
+void uncaughtExceptionHandler(NSException *exception) {
+    NSArray* backtrace = [exception callStackSymbols];
+    // Construct userInfo
+    NSMutableDictionary* userInfo = [[NSMutableDictionary alloc] init];
+    userInfo[@"stackTrace"] = [NSString stringWithFormat:@"Backtrace:\n%@", backtrace];
+    userInfo[@"message"] = [exception reason];
+    
+    // Send notification to tracker
+    [[NSNotificationCenter defaultCenter]
+     postNotificationName:@"SPExceptionOccurred"
+     object:nil
+     userInfo:userInfo];
+}
+
 @implementation SPTracker {
     NSMutableDictionary *  _trackerData;
     NSString *             _platformContextSchema;
@@ -61,6 +76,7 @@
     NSInteger              _backgroundTimeout;
     NSInteger              _checkInterval;
     BOOL                   _builderFinished;
+    BOOL                   _exceptionEvents;
 }
 
 // SnowplowTracker Builder
@@ -91,6 +107,7 @@
         _builderFinished = NO;
         self.previousScreenState = nil;
         self.currentScreenState = nil;
+        _exceptionEvents = NO;
 #if SNOWPLOW_TARGET_IOS
         _platformContextSchema = kSPMobileContextSchema;
 #else
@@ -116,6 +133,14 @@
                                                  selector:@selector(receiveScreenViewNotification:)
                                                      name:@"SPScreenViewDidAppear"
                                                    object:nil];
+    }
+    
+    if (_exceptionEvents) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleExceptionNotification:)
+                                                     name:@"SPExceptionOccurred"
+                                                   object:self];
+        NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     }
 
     _builderFinished = YES;
@@ -201,6 +226,10 @@
     _lifecycleEvents = lifecycleEvents;
 }
 
+- (void) setExceptionEvents:(BOOL)exceptionEvents {
+    _exceptionEvents = exceptionEvents;
+}
+
 // Extra Functions
 
 - (void) pauseEventTracking {
@@ -244,6 +273,22 @@
     [applicationInfo addValueToPayload:build forKey:kSPApplicationBuild];
     [applicationInfo addValueToPayload:version forKey:kSPApplicationVersion];
     return applicationInfo;
+}
+
+- (void) handleExceptionNotification:(NSNotification *)notification {
+    NSDictionary * userInfo = [notification userInfo];
+    NSString * stackTrace = [userInfo objectForKey:@"stackTrace"];
+    NSString * message = [userInfo objectForKey:@"message"];
+    if (message == nil || [message length] == 0) {
+        return;
+    }
+    SPError * error = [SPError build:^(id<SPErrorBuilder> builder) {
+        [builder setMessage:message];
+        if (stackTrace != nil && [stackTrace length] > 0) {
+            [builder setStackTrace:stackTrace];
+        }
+    }];
+    [self trackErrorEvent:error];
 }
 
 - (void) receiveScreenViewNotification:(NSNotification *)notification {
@@ -391,6 +436,16 @@
 }
 
 - (void) trackBackgroundEvent:(SPBackground *)event {
+    SPUnstructured * unstruct = [SPUnstructured build:^(id<SPUnstructuredBuilder> builder) {
+        [builder setEventData:[event getPayload]];
+        [builder setTimestamp:[event getTimestamp]];
+        [builder setContexts:[event getContexts]];
+        [builder setEventId:[event getEventId]];
+    }];
+    [self trackUnstructuredEvent:unstruct];
+}
+
+- (void) trackErrorEvent:(SPError *)event {
     SPUnstructured * unstruct = [SPUnstructured build:^(id<SPUnstructuredBuilder> builder) {
         [builder setEventData:[event getPayload]];
         [builder setTimestamp:[event getTimestamp]];

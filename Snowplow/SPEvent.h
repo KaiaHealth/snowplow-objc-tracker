@@ -691,6 +691,7 @@ NSString * stringWithSPScreenType(SPScreenType screenType);
 /*! The UUID that identifies the event. */
 @property (nonatomic, readwrite, retain) NSString * eventId;
 
+- (void) basePreconditions;
 - (NSMutableArray *) getContexts;
 - (NSNumber *) getTimestamp;
 - (NSString *) getEventId;
@@ -698,10 +699,8 @@ NSString * stringWithSPScreenType(SPScreenType screenType);
 @end
 
 /*!
- @class SPEvent
- @brief The base object for all events.
-
- This class has the basic functionality needed to represent all events.
+ @class SPPageView
+ @brief A pageview.
  */
 @interface SPPageView : SPEvent <SPPageViewBuilder>
 + (instancetype) build:(void(^)(id<SPPageViewBuilder>builder))buildBlock;

@@ -63,6 +63,7 @@ NSString * const kSPPushNotificationSchema = @"iglu:com.apple/notification_event
 NSString * const kSPApplicationContextSchema = @"iglu:com.snowplowanalytics.mobile/application/jsonschema/1-0-0";
 NSString * const kSPForegroundSchema = @"iglu:com.snowplowanalytics.snowplow/application_foreground/jsonschema/1-0-0";
 NSString * const kSPBackgroundSchema = @"iglu:com.snowplowanalytics.snowplow/application_background/jsonschema/1-0-0";
+NSString * const kSPErrorSchema = @"iglu:com.snowplowanalytics.snowplow/application_error/jsonschema/1-0-2";
 
 // --- Event Keys
 
@@ -238,5 +239,12 @@ NSString * const kSPBackgroundIndex       = @"backgroundIndex";
 // --- Background Event
 
 NSString * const kSPForegroundIndex       = @"foregroundIndex";
+
+// --- Error Event
+
+NSString * const kSPErrorName             = @"exceptionName";
+NSString * const kSPErrorStackTrace       = @"stackTrace";
+NSString * const kSPErrorLanguage         = @"programmingLanguage";
+NSString * const kSPErrorMessage          = @"message";
 
 @end
