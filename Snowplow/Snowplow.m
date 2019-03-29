@@ -64,6 +64,7 @@ NSString * const kSPApplicationContextSchema = @"iglu:com.snowplowanalytics.mobi
 NSString * const kSPForegroundSchema = @"iglu:com.snowplowanalytics.snowplow/application_foreground/jsonschema/1-0-0";
 NSString * const kSPBackgroundSchema = @"iglu:com.snowplowanalytics.snowplow/application_background/jsonschema/1-0-0";
 NSString * const kSPErrorSchema = @"iglu:com.snowplowanalytics.snowplow/application_error/jsonschema/1-0-2";
+NSString * const kSPApplicationInstallSchema = @"iglu:com.snowplowanalytics.mobile/application_install/jsonschema/1-0-0";
 
 // --- Event Keys
 
@@ -246,5 +247,10 @@ NSString * const kSPErrorName             = @"exceptionName";
 NSString * const kSPErrorStackTrace       = @"stackTrace";
 NSString * const kSPErrorLanguage         = @"programmingLanguage";
 NSString * const kSPErrorMessage          = @"message";
+
+// --- Install tracking
+
+NSString * const kSPInstalledBeforeKey        = @"sp_installedBefore";
+
 
 @end

@@ -84,6 +84,7 @@ extern NSString * const kSPApplicationContextSchema;
 extern NSString * const kSPBackgroundSchema;
 extern NSString * const kSPForegroundSchema;
 extern NSString * const kSPErrorSchema;
+extern NSString * const kSPApplicationInstallSchema;
 
 // --- Event Keys
 
@@ -264,5 +265,9 @@ extern NSString * const kSPErrorMessage;
 extern NSString * const kSPErrorStackTrace;
 extern NSString * const kSPErrorName;
 extern NSString * const kSPErrorLanguage;
+
+// --- Install tracking
+
+extern NSString * const kSPInstalledBeforeKey;
 
 @end

@@ -31,6 +31,7 @@
 #import "SPEvent.h"
 #import "SPError.h"
 #import "SPScreenState.h"
+#import "SPInstallTracker.h"
 
 /** A class extension that makes the screen view states mutable internally. */
 @interface SPTracker ()
@@ -87,6 +88,7 @@ void uncaughtExceptionHandler(NSException *exception) {
         buildBlock(tracker);
     }
     [tracker setup];
+    [tracker checkInstall];
     return tracker;
 }
 
@@ -144,6 +146,17 @@ void uncaughtExceptionHandler(NSException *exception) {
     }
 
     _builderFinished = YES;
+}
+
+- (void) checkInstall {
+    SPInstallTracker * installTracker = [[SPInstallTracker alloc] init];
+    if ([installTracker isNewInstall]) {
+        SPSelfDescribingJson * installEvent = [[SPSelfDescribingJson alloc] initWithSchema:kSPApplicationInstallSchema andData:@{}];
+        SPUnstructured * event = [SPUnstructured build:^(id<SPUnstructuredBuilder> builder) {
+            [builder setEventData:installEvent];
+        }];
+        [self trackUnstructuredEvent:event];
+    }
 }
 
 - (void) setTrackerData {
